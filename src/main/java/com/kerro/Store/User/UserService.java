@@ -68,4 +68,14 @@ public class UserService {
         return userList;
     }
 
+    public boolean usersLogin(User user){
+
+        Optional<User> userOptional = userRepository.findByUsernameAndPassword(user.getUsername(), user.getPassword());
+        System.out.println(user.getPassword());
+        if(userOptional.isPresent()){
+            return true;
+        }
+        return  false;
+    }
+
 }

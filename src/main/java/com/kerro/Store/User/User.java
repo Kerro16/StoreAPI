@@ -24,30 +24,20 @@ public class User {
     @Column(name = "password", length = 255, nullable = false)
     String password;
 
-    @Column(name = "firstname", length = 255, nullable = false)
-    String firstname;
+    @Column(name = "email", length = 255, nullable = true)
+    String email;
 
-    @Column(name = "lastname", length = 255, nullable = false)
-    String lastname;
-
-    @Column(name = "address", length = 255, nullable = true)
-    String address;
-
-    public User(long id, String username, String password, String firstname, String lastname, String address) {
+    public User(long id, String username, String password, String email) {
         this.id = id;
         this.username = username;
         this.password = password;
-        this.firstname = firstname;
-        this.lastname = lastname;
-        this.address = address;
+        this.email = email;
     }
 
-    public User(String username, String password, String firstname, String lastname, String address) {
+    public User(String username, String password, String email) {
         this.username = username;
         this.password = password;
-        this.firstname = firstname;
-        this.lastname = lastname;
-        this.address = address;
+        this.email = email;
     }
 
 }
