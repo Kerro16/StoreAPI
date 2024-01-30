@@ -1,6 +1,7 @@
 package com.kerro.Store.Security;
 
 
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +35,9 @@ import java.util.Arrays;
 public class SecurityConfig {
 
 private final Key key;
+
+    @Autowired
+    private Environment environment;
 
 public SecurityConfig(Key key){
     this.key = key;
@@ -75,6 +79,7 @@ public SecurityConfig(Key key){
         return new BCryptPasswordEncoder();
     }
 
+
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -88,8 +93,7 @@ public SecurityConfig(Key key){
     public SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity> securityConfigurerAdapter() {
         return new SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>() {
 
-            @Autowired
-            private Environment environment;
+
             @Override
             public void configure(HttpSecurity http) throws Exception {
                 if (Arrays.asList(environment.getActiveProfiles()).contains("dev")) {

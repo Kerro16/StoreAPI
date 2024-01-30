@@ -7,6 +7,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,7 +33,7 @@ public class UserController {
     UserController(UserService userService){ this.userService = userService;}
 
     @Autowired
-    private PrivateKey privateKey;
+    private Key key;
 
     @RequestMapping
     public List<User> getAllUsers(){return userService.getAllUsers();}
@@ -59,22 +60,23 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public  ResponseEntity<?> login(@Validated @RequestBody User user) {
-
-        if(userService.usersLogin(user)){
-
-        String token = generateToken(user.getUsername());
-
-        return ResponseEntity.ok(new JwtResponse(token));
+    public ResponseEntity<?> login(@Validated @RequestBody User user) {
+        try {
+            if (userService.usersLogin(user)) {
+                String token = generateToken(user.getUsername());
+                return ResponseEntity.ok(new JwtResponse(token));
+            }
+            return ResponseEntity.status(401).build(); // Unauthorized
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build(); // Internal Server Error
+        }
     }
-        return ResponseEntity.status(401).build(); //Unauthorized
-  }
 
-  private String generateToken(String username){
+    private String generateToken(String username){
         return Jwts.builder()
                 .setSubject(username)
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 day expiration
-                .signWith(privateKey, SignatureAlgorithm.ES256)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
-  }
+    }
 }
