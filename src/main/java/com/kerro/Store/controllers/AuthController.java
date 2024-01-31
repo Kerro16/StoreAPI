@@ -1,0 +1,169 @@
+package com.kerro.Store.controllers;
+
+import com.kerro.Store.model.ERole;
+import com.kerro.Store.model.Product;
+import com.kerro.Store.model.Role;
+import com.kerro.Store.model.User;
+import com.kerro.Store.repository.RoleRepository;
+import com.kerro.Store.repository.UserRepository;
+import com.kerro.Store.request.LoginRequest;
+import com.kerro.Store.request.SignupRequest;
+import com.kerro.Store.response.MessageResponse;
+import com.kerro.Store.response.UserInfoResponse;
+import com.kerro.Store.security.jwt.JwtUtils;
+import com.kerro.Store.security.services.UserDetailsImpl;
+import com.kerro.Store.services.ProductService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@CrossOrigin(origins = "*", maxAge = 3600)
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    JwtUtils jwtUtils;
+
+    @PostMapping("/signin")
+    public ResponseEntity<?> authenticateUser(@Validated @RequestBody LoginRequest loginRequest) {
+
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
+
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(item -> item.getAuthority())
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .body(new UserInfoResponse(userDetails.getId(),
+                        userDetails.getUsername(),
+                        userDetails.getEmail(),
+                        roles));
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<?> registerUser(@Validated @RequestBody SignupRequest signUpRequest) {
+        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
+        }
+
+        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
+        }
+
+        // Create new user's account
+        User user = new User(signUpRequest.getUsername(),
+                signUpRequest.getEmail(),
+                passwordEncoder.encode(signUpRequest.getPassword()));
+
+        Set<String> strRoles = signUpRequest.getRole();
+        Set<Role> roles = new HashSet<>();
+
+        if (strRoles == null) {
+            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            roles.add(userRole);
+        } else {
+            strRoles.forEach(role -> {
+                switch (role) {
+                    case "admin":
+                        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(adminRole);
+
+                        break;
+                    case "mod":
+                        Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(modRole);
+
+                        break;
+                    default:
+                        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                        roles.add(userRole);
+                }
+            });
+        }
+
+        user.setRoles(roles);
+        userRepository.save(user);
+
+        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    @PostMapping("/signout")
+    public ResponseEntity<?> logoutUser() {
+        ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new MessageResponse("You've been signed out!"));
+    }
+
+    @RestController
+    @RequestMapping(path = "api/v1/product")
+    public static class ProductController {
+
+        private final ProductService productService;
+    @Autowired
+        ProductController(ProductService productService) {
+            this.productService = productService;
+        }
+
+        @GetMapping
+        public List<Product> getProducts() {
+            return productService.getAllProducts();
+        }
+
+        @PostMapping("/add")
+        public ResponseEntity<Void> addNewProducts(@Validated @RequestBody List<Product> productList) {
+            productService.addNewProducts(productList);
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        }
+
+        @PostMapping("/remove")
+        public ResponseEntity<List<Product>> removeProducts(@Validated @RequestBody List<Product> productList) {
+            List<Product> removedProducts = productService.removeProducts(productList);
+            return ResponseEntity.ok(removedProducts);
+        }
+
+        @PostMapping("/update")
+        public ResponseEntity<List<Product>> updateProducts(@Validated @RequestBody List<Product> productList) {
+            List<Product> updatedProducts = productService.updateProducts(productList);
+            return ResponseEntity.ok(updatedProducts);
+        }
+
+    }
+}

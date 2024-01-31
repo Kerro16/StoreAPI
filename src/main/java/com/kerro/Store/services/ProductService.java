@@ -1,5 +1,7 @@
-package com.kerro.Store.Product;
+package com.kerro.Store.services;
 
+import com.kerro.Store.model.Product;
+import com.kerro.Store.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;

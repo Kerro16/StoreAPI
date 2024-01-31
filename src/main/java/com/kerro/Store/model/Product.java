@@ -1,4 +1,4 @@
-package com.kerro.Store.Product;
+package com.kerro.Store.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
