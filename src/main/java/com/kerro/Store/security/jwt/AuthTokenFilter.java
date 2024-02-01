@@ -1,6 +1,5 @@
 package com.kerro.Store.security.jwt;
 
-import com.kerro.Store.security.services.UserDetailsImpl;
 import com.kerro.Store.security.services.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

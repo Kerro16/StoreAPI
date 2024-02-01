@@ -1,7 +1,6 @@
 package com.kerro.Store.controllers;
 
 import com.kerro.Store.model.ERole;
-import com.kerro.Store.model.Product;
 import com.kerro.Store.model.Role;
 import com.kerro.Store.model.User;
 import com.kerro.Store.repository.RoleRepository;
@@ -12,10 +11,8 @@ import com.kerro.Store.response.MessageResponse;
 import com.kerro.Store.response.UserInfoResponse;
 import com.kerro.Store.security.jwt.JwtUtils;
 import com.kerro.Store.security.services.UserDetailsImpl;
-import com.kerro.Store.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -130,40 +127,5 @@ public class AuthController {
         ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new MessageResponse("You've been signed out!"));
-    }
-
-    @RestController
-    @RequestMapping(path = "api/v1/product")
-    public static class ProductController {
-
-        private final ProductService productService;
-    @Autowired
-        ProductController(ProductService productService) {
-            this.productService = productService;
-        }
-
-        @GetMapping
-        public List<Product> getProducts() {
-            return productService.getAllProducts();
-        }
-
-        @PostMapping("/add")
-        public ResponseEntity<Void> addNewProducts(@Validated @RequestBody List<Product> productList) {
-            productService.addNewProducts(productList);
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        }
-
-        @PostMapping("/remove")
-        public ResponseEntity<List<Product>> removeProducts(@Validated @RequestBody List<Product> productList) {
-            List<Product> removedProducts = productService.removeProducts(productList);
-            return ResponseEntity.ok(removedProducts);
-        }
-
-        @PostMapping("/update")
-        public ResponseEntity<List<Product>> updateProducts(@Validated @RequestBody List<Product> productList) {
-            List<Product> updatedProducts = productService.updateProducts(productList);
-            return ResponseEntity.ok(updatedProducts);
-        }
-
     }
 }
