@@ -65,8 +65,11 @@ public class SecurityConfig {
                                 .requestMatchers("/api/product").permitAll()
                                 .anyRequest().authenticated()
                 );
+
+
         return http.build();
     }
+
 
 }
 
