@@ -13,7 +13,16 @@ This API utilizes JSON Web Tokens (JWT) for authentication, which are set as coo
 
 To obtain a JWT token, you need to send a valid username and password to the `/api/auth/singin` endpoint. The server will respond by setting a cookie with the JWT token if the credentials are valid.
 
-- **POST /login**
+## Technologies Used
+- Java 
+- SpringBoot
+- PostgreSQL
+- FrontEnd: [FrontStore](https://github.com/Kerro16/FrontStore)
+- Lombok
+- JPA Hibernate
+  
+
+- **POST /api/auth/sigin**
   - Description: Obtain a JWT token.
   - Request:
     ```json
