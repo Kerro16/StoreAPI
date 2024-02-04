@@ -8,8 +8,10 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
+import java.awt.color.ProfileDataException;
 import java.util.List;
 import java.util.Optional;
 
@@ -64,7 +66,7 @@ public class ProductService {
         }
 
         if(!productRepository.existsById(product.getId())){
-            throw new EntityNotFoundException("Cannot found a product with ID provided");
+            throw new ProductNotFoundException("Cannot found a product with ID provided");
         }
 
         productRepository.save(product);
@@ -76,6 +78,20 @@ public class ProductService {
         }
     }
 
+
+    public Product getProductById(Long id) {
+
+
+
+        if (id == null) {
+            throw new IllegalStateException("Invalid ID");
+        }
+
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with ID: " + id));
+
+
+    }
 
 
 }
