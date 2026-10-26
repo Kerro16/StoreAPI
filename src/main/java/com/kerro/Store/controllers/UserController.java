@@ -7,6 +7,7 @@ import com.kerro.Store.model.ERole;
 import com.kerro.Store.model.Role;
 import com.kerro.Store.repository.UserRepository;
 import com.kerro.Store.request.UserUpdateRequest;
+import com.kerro.Store.response.UserInfoResponse;
 import com.kerro.Store.services.UserService;
 import com.kerro.Store.model.User;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +19,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -35,9 +35,15 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @RequestMapping("/getall")
-    @PreAuthorize("hasRole('USER')")
-    public List<User> getAllUsers(){return userService.getAllUsers();}
+    // Returns a DTO so password hashes never leave the server.
+    @GetMapping("/getall")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UserInfoResponse> getAllUsers() {
+        return userService.getAllUsers().stream()
+                .map(u -> new UserInfoResponse(u.getId(), u.getUsername(), u.getEmail(),
+                        u.getRoles().stream().map(r -> r.getName().name()).collect(Collectors.toList())))
+                .collect(Collectors.toList());
+    }
 
     public void updateUserAdmin(UserUpdateRequest userUpdateRequest) {
         Optional<User> optionalUser = userRepository.findById(userUpdateRequest.getId());

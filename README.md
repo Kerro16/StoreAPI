@@ -11,7 +11,7 @@ This API utilizes JSON Web Tokens (JWT) for authentication, which are set as coo
 
 ### Obtaining a Token
 
-To obtain a JWT token, you need to send a valid username and password to the `/api/auth/singin` endpoint. The server will respond by setting a cookie with the JWT token if the credentials are valid.
+To obtain a JWT token, you need to send a valid username and password to the `/api/auth/signin` endpoint. The server will respond by setting a cookie with the JWT token if the credentials are valid.
 
 ## Technologies Used
 - Java 
@@ -48,3 +48,23 @@ To log out, you can simply clear the `jwt_token` cookie.
 ```bash
 curl -X POST http://localhost:8080/api/auth/logout
 
+
+
+## Configuration
+
+Secrets are **not** stored in the repository. Copy `.env.example`, fill in the values and export them as
+environment variables before starting the API:
+
+| Variable | Purpose |
+|---|---|
+| `DB_PASSWORD` | PostgreSQL password (required) |
+| `JWT_SECRET` | Base64 string of 32+ random bytes, e.g. `openssl rand -base64 48` (required) |
+| `DB_URL`, `DB_USERNAME` | Database connection (defaults to local PostgreSQL) |
+| `ALLOWED_ORIGINS` | Comma-separated CORS origins (default `http://localhost:4200`) |
+| `COOKIE_SECURE` | Set to `true` behind HTTPS |
+
+## Access rules
+
+- `POST /api/auth/signup` always creates a regular user (`ROLE_USER`); the requested role is ignored.
+- `GET /api/product/**` is public; creating, updating or deleting products needs `ADMIN` or `MODERATOR`.
+- `/api/users/**` needs `ADMIN` and never returns password hashes.

@@ -16,7 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true", allowedHeaders = {"Origin", "X-Requested-With", "Content-Type", "Accept"}, methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
 @RestController
 @RequestMapping("/api/product")
 public class ProductController {
@@ -51,12 +50,14 @@ public class ProductController {
 
     }
 
-    @PostMapping("/delete")
+    @RequestMapping(value = "/delete", method = {RequestMethod.POST, RequestMethod.DELETE})
     public ResponseEntity<String> deleteProduct(@RequestParam Long id){
-
-
-
-        return ResponseEntity.ok("Product deleted successfully");
+        try {
+            productService.deleteProductById(id);
+            return ResponseEntity.ok("Product deleted successfully");
+        } catch (ProductNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
     }
 
     @PostMapping("/update")
