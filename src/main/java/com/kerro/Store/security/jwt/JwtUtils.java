@@ -29,6 +29,9 @@ public class JwtUtils {
     @Value("${kerro.app.jwtCookieName}")
     private String jwtCookie;
 
+    @Value("${kerro.app.cookieSecure:false}")
+    private boolean cookieSecure;
+
 
     public String getJwtFromCookies(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, jwtCookie);
@@ -41,13 +44,13 @@ public class JwtUtils {
 
     public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
         String jwt = generateTokenFromUsername(userPrincipal.getUsername());
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt).path("/api").maxAge(24 * 60 * 60).httpOnly(true).build();
-        return cookie;
+        return ResponseCookie.from(jwtCookie, jwt).path("/api").maxAge(jwtExpirationMs / 1000L)
+                .httpOnly(true).secure(cookieSecure).sameSite("Lax").build();
     }
 
     public ResponseCookie getCleanJwtCookie() {
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie, null).path("/api").build();
-        return cookie;
+        return ResponseCookie.from(jwtCookie, "").path("/api").maxAge(0)
+                .httpOnly(true).secure(cookieSecure).sameSite("Lax").build();
     }
 
     public String getUserNameFromJwtToken(String token) {

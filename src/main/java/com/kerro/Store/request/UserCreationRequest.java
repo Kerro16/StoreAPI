@@ -2,7 +2,7 @@ package com.kerro.Store.request;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.Set;
 
